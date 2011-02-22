@@ -76,6 +76,12 @@ mylauncher = awful.widget.launcher({ image = image(beautiful.awesome_icon),
 datewidget = widget({type= "textbox"})
 vicious.register(datewidget, vicious.widgets.date, "%b %d, %R")
 
+--Keyboard layout widget
+kbdwidget = widget ({type = "textbox", name = "kbdwidget"})
+kbdwidget.border_width = 1
+kbdwidget.border_color = beautiful.fg_normal
+kbdwidget.text = " Eng "
+
 -- Create a systray
 mysystray = widget({ type = "systray" })
 
@@ -150,6 +156,7 @@ for s = 1, screen.count() do
         mylayoutbox[s],
         --mytextclock,
 	datewidget,
+	kbdwidget,
         s == 1 and mysystray or nil,
         mytasklist[s],
         layout = awful.widget.layout.horizontal.rightleft
@@ -340,3 +347,14 @@ client.add_signal("unfocus", function(c) c.border_color = beautiful.border_norma
 -- }}}
 --try to execute all autostart programms
 awful.util.spawn_with_shell("dex -a")
+
+--Listen to keyboard layout changes for kbdwidget
+dbus.request_name("session", "ru.gentoo.kbdd")
+dbus.add_match("session", "interface='ru.gentoo.kbdd', member='layoutChanged'")
+dbus.add_signal ("ru.gentoo.kbdd", function (...)
+	local data = {...}
+	local layout = data [2]
+	lts = {[0] = "Eng", [1] = "Rus"}
+	kbdwidget.text = " "..lts[layout].." "
+	end
+)
