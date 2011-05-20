@@ -8,6 +8,39 @@ require("beautiful")
 require("naughty")
 --Widget library
 require("vicious")
+--Volume control
+
+ cardid  = 0
+ channel = "Master"
+ function volume (mode, widget)
+ 	if mode == "update" then
+              local fd = io.popen("amixer -c " .. cardid .. " -- sget " .. channel)
+              local status = fd:read("*all")
+              fd:close()
+ 		
+ 		local volume = string.match(status, "(%d?%d?%d)%%")
+ 		volume = string.format("% 3d", volume)
+ 
+ 		status = string.match(status, "%[(o[^%]]*)%]")
+ 
+ 		if string.find(status, "on", 1, true) then
+ 		    widget:bar_properties_set("vol", {["bg"]="#000000"})
+        else
+            widget:bar_properties_set("vol", {["bg"] = "#cc3333"})
+ 		end
+ 		widget.text = widget:bar_data_add("vol", volume)
+ 	elseif mode == "up" then
+ 		io.popen("amixer -q -c " .. cardid .. " sset " .. channel .. " 5%+"):read("*all")
+ 		volume("update", widget)
+ 	elseif mode == "down" then
+ 		io.popen("amixer -q -c " .. cardid .. " sset " .. channel .. " 5%-"):read("*all")
+ 		volume("update", widget)
+ 	else
+ 		io.popen("amixer -c " .. cardid .. " sset " .. channel .. " toggle"):read("*all")
+ 		volume("update", widget)
+ 	end
+ end
+
 
 -- {{{ Variable definitions
 -- Themes define colours, icons, and wallpapers
@@ -15,8 +48,9 @@ beautiful.init("/usr/share/awesome/themes/default/theme.lua")
 
 -- This is used later as the default terminal and editor to run.
 terminal = "urxvt"
-editor = os.getenv("EDITOR") or "nano"
+editor = os.getenv("EDITOR") or "vim"
 editor_cmd = terminal .. " -e " .. editor
+browser = "google-chrome"
 
 -- Default modkey.
 -- Usually, Mod4 is the key with a logo between Control and Alt.
@@ -75,6 +109,37 @@ mylauncher = awful.widget.launcher({ image = image(beautiful.awesome_icon),
 --mytextclock = awful.widget.textclock({ align = "right" })
 datewidget = widget({type= "textbox"})
 vicious.register(datewidget, vicious.widgets.date, "%b %d, %R")
+
+--volume widget
+
+ pb_volume =  widget({ type = "progressbar", name = "pb_volume", align = "right" })
+ pb_volume.width = 12
+ pb_volume.height = 1
+ pb_volume.border_padding = 1
+ pb_volume.border_width = 1
+ pb_volume.ticks_count = 7
+ pb_volume.gap = 0
+ pb_volume.vertical = true
+ 
+ pb_volume:bar_properties_set("vol", 
+ { 
+   ["bg"] = "#000000",
+   ["fg"] = "green",
+   ["fg_center"] = "yellow",
+   ["fg_end"] = "red",
+   ["fg_off"] = "black",
+   ["border_color"] = "#999933",
+   ["min_value"] = 0,
+   ["max_value"] = 100,
+   ["reverse"] = false
+ })
+pb_volume:buttons({
+	button({ }, 4, function () volume("up", pb_volume) end),
+	button({ }, 5, function () volume("down", pb_volume) end),
+	button({ }, 1, function () volume("mute", pb_volume) end)
+})
+volume("update", pb_volume)
+
 
 --Keyboard layout widget
 kbdwidget = widget ({type = "textbox", name = "kbdwidget"})
@@ -155,8 +220,9 @@ for s = 1, screen.count() do
         },
         mylayoutbox[s],
         --mytextclock,
-	datewidget,
-	kbdwidget,
+        pb_volume,
+	    datewidget,
+	    kbdwidget,
         s == 1 and mysystray or nil,
         mytasklist[s],
         layout = awful.widget.layout.horizontal.rightleft
@@ -206,6 +272,7 @@ globalkeys = awful.util.table.join(
 
     -- Standard program
     awful.key({ modkey,           }, "Return", function () awful.util.spawn(terminal) end),
+    awful.key({ modkey,           }, "g", function() awful.util.spawn(browser) end),
     awful.key({ modkey, "Control" }, "r", awesome.restart),
     awful.key({ modkey, "Shift"   }, "q", awesome.quit),
 
@@ -243,7 +310,14 @@ clientkeys = awful.util.table.join(
         function (c)
             c.maximized_horizontal = not c.maximized_horizontal
             c.maximized_vertical   = not c.maximized_vertical
-        end)
+        end),
+    --Volume management
+    awful.key({ }, "XF86AudioRaiseVolume", function ()
+            volume("up", pb_volume) end),
+    awful.key({ }, "XF86AudioLowerVolume", function ()
+            volume("down", pb_volume) end),
+    awful.key({ }, "XF86AudioMute", function ()
+            volume("mute", pb_volume) end)
 )
 
 -- Compute the maximum number of digit we need, limited to 9
@@ -309,8 +383,10 @@ awful.rules.rules = {
       properties = { floating = true } },
     { rule = { class = "gimp" },
       properties = { floating = true } },
+    { rule = { class = "google-chrome"},
+      properties = { tag = tags[1][2] } },
     -- Set Firefox to always map on tags number 2 of screen 1.
-    -- { rule = { class = "Firefox" },
+   -- { rule = { class = "Firefox" },
     --   properties = { tag = tags[1][2] } },
 }
 -- }}}
@@ -358,3 +434,7 @@ dbus.add_signal ("ru.gentoo.kbdd", function (...)
 	kbdwidget.text = " "..lts[layout].." "
 	end
 )
+
+--Volume hook
+awful.hooks.timer.register(10, function () volume("update", pb_volume) end)
+
