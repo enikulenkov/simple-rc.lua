@@ -41,6 +41,9 @@ require("vicious")
  	end
  end
 
+ function shutdown ()
+    local fd = io.popen("/home/deimos/scripts/shutdown.sh")
+ end
 
 -- {{{ Variable definitions
 -- Themes define colours, icons, and wallpapers
@@ -51,6 +54,8 @@ terminal = "urxvt"
 editor = os.getenv("EDITOR") or "vim"
 editor_cmd = terminal .. " -e " .. editor
 browser = "google-chrome"
+file_manager = "ranger"
+fm_cmd = terminal .. " -e " .. file_manager
 
 -- Default modkey.
 -- Usually, Mod4 is the key with a logo between Control and Alt.
@@ -96,7 +101,8 @@ myawesomemenu = {
 }
 
 mymainmenu = awful.menu({ items = { { "awesome", myawesomemenu, beautiful.awesome_icon },
-                                    { "open terminal", terminal }
+                                    { "open terminal", terminal },
+                                    { "Log out", '/home/deimos/scripts/shutdown.sh'}
                                   }
                         })
 
@@ -146,6 +152,13 @@ kbdwidget = widget ({type = "textbox", name = "kbdwidget"})
 kbdwidget.border_width = 1
 kbdwidget.border_color = beautiful.fg_normal
 kbdwidget.text = " Eng "
+
+--Shutdown widget
+shwidget = widget ({type = "textbox", name = "shwidget"})
+shwidget.text = " Sh "
+shwidget:buttons ({
+    button({ }, 1, function() shutdown() end)
+})
 
 -- Create a systray
 mysystray = widget({ type = "systray" })
@@ -218,6 +231,7 @@ for s = 1, screen.count() do
             mypromptbox[s],
             layout = awful.widget.layout.horizontal.leftright
         },
+        shwidget,
         mylayoutbox[s],
         --mytextclock,
         pb_volume,
@@ -273,6 +287,7 @@ globalkeys = awful.util.table.join(
     -- Standard program
     awful.key({ modkey,           }, "Return", function () awful.util.spawn(terminal) end),
     awful.key({ modkey,           }, "g", function() awful.util.spawn(browser) end),
+    awful.key({ modkey,           }, "f", function() awful.util.spawn(fm_cmd) end),
     awful.key({ modkey, "Control" }, "r", awesome.restart),
     awful.key({ modkey, "Shift"   }, "q", awesome.quit),
 
@@ -294,7 +309,17 @@ globalkeys = awful.util.table.join(
                   mypromptbox[mouse.screen].widget,
                   awful.util.eval, nil,
                   awful.util.getdir("cache") .. "/history_eval")
-              end)
+              end),
+    --Volume management
+    awful.key({ }, "XF86AudioRaiseVolume", function ()
+            volume("up", pb_volume) end),
+    awful.key({ }, "XF86AudioLowerVolume", function ()
+            volume("down", pb_volume) end),
+    awful.key({ }, "XF86AudioMute", function ()
+            volume("mute", pb_volume) end),
+    --Shutdown
+    awful.key({ modkey, }, "q",    function()
+        shutdown() end)
 )
 
 clientkeys = awful.util.table.join(
@@ -310,14 +335,7 @@ clientkeys = awful.util.table.join(
         function (c)
             c.maximized_horizontal = not c.maximized_horizontal
             c.maximized_vertical   = not c.maximized_vertical
-        end),
-    --Volume management
-    awful.key({ }, "XF86AudioRaiseVolume", function ()
-            volume("up", pb_volume) end),
-    awful.key({ }, "XF86AudioLowerVolume", function ()
-            volume("down", pb_volume) end),
-    awful.key({ }, "XF86AudioMute", function ()
-            volume("mute", pb_volume) end)
+        end)
 )
 
 -- Compute the maximum number of digit we need, limited to 9
