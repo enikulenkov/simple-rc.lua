@@ -45,18 +45,18 @@ require("vicious")
     local fd = io.popen("/home/deimos/scripts/shutdown.sh")
  end
 
---Mcabber unread messages
-function mcabber_unread_count (widget)
-    local fd = io.popen("/home/deimos/scripts/unread_messages.sh")
-    local count = fd:read("*all")
-    fd:close()
-    if string.find (count, "0") then
-        widget.bg = "#000000"
-    else
-        widget.bg = "red"
-    end
-    widget.text = count
-end
+-- Mcabber unread messages
+-- function mcabber_unread_count (widget)
+--     local fd = io.popen("/home/deimos/scripts/unread_messages.sh")
+--     local count = fd:read("*all")
+--     fd:close()
+--     if string.find (count, "0") then
+--         widget.bg = "#000000"
+--     else
+--         widget.bg = "red"
+--     end
+--     widget.text = count
+-- end
  
 -- {{{ Variable definitions
 -- Themes define colours, icons, and wallpapers
@@ -67,7 +67,7 @@ terminal = "urxvt"
 editor = os.getenv("EDITOR") or "vim"
 editor_cmd = terminal .. " -e " .. editor
 browser = "google-chrome"
-file_manager = "ranger"
+file_manager = "mc"
 fm_cmd = terminal .. " -e " .. file_manager
 
 -- Default modkey.
@@ -100,7 +100,7 @@ layouts =
 tags = {}
 for s = 1, screen.count() do
     -- Each screen has its own tag table.
-    tags[s] = awful.tag({ 1, 2, 3, 4, 5, 6, 7, 8, 9 }, s, layouts[1])
+    tags[s] = awful.tag({ "term", "chrome", "okular", 4, 5, 6, 7, 8, 9 }, s, layouts[1])
 end
 -- }}}
 
@@ -166,13 +166,13 @@ kbdwidget.border_width = 1
 kbdwidget.border_color = beautiful.fg_normal
 kbdwidget.text = " Eng "
 
---Unread messages widget
-meswidget = widget ({type = "textbox", name = "meswidget"})
-meswidget.border_width = 1
-meswidget.border_color = beautiful.fg_normal
-meswidget.width = 20
-meswidget.align = "center";
-mcabber_unread_count(meswidget)
+-- Unread messages widget
+-- meswidget = widget ({type = "textbox", name = "meswidget"})
+-- meswidget.border_width = 1
+-- meswidget.border_color = beautiful.fg_normal
+-- meswidget.width = 20
+-- meswidget.align = "center";
+-- mcabber_unread_count(meswidget)
 
 --Shutdown widget
 shwidget = widget ({type = "textbox", name = "shwidget"})
@@ -476,5 +476,5 @@ dbus.add_signal ("ru.gentoo.kbdd", function (...)
 
 --Volume hook
 awful.hooks.timer.register(10, function () volume("update", pb_volume) end)
---Mcabber messages hook
-awful.hooks.timer.register(3, function () mcabber_unread_count(meswidget)  end)
+-- Mcabber messages hook
+-- awful.hooks.timer.register(3, function () mcabber_unread_count(meswidget)  end)
