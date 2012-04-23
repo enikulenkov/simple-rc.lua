@@ -308,7 +308,7 @@ globalkeys = awful.util.table.join(
     -- Standard program
     awful.key({ modkey,           }, "Return", function () awful.util.spawn(terminal) end),
     awful.key({ modkey,           }, "g", function() awful.util.spawn(browser) end),
-    awful.key({ modkey,           }, "f", function() awful.util.spawn(fm_cmd) end),
+    awful.key({ modkey, "Shift"   }, "f", function() awful.util.spawn(fm_cmd) end),
     awful.key({ modkey, "Control" }, "r", awesome.restart),
     awful.key({ modkey, "Shift"   }, "q", awesome.quit),
 
@@ -322,7 +322,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Shift"   }, "space", function () awful.layout.inc(layouts, -1) end),
 
     -- Prompt
-    awful.key({ modkey },            "r",     function () mypromptbox[mouse.screen]:run() end),
+    -- awful.key({ modkey },            "r",     function () mypromptbox[mouse.screen]:run() end),
 
     awful.key({ modkey }, "x",
               function ()
@@ -414,6 +414,7 @@ awful.rules.rules = {
       properties = { border_width = beautiful.border_width,
                      border_color = beautiful.border_normal,
                      focus = true,
+                     size_hints_honor = false,
                      keys = clientkeys,
                      buttons = clientbuttons } },
     { rule = { class = "MPlayer" },
@@ -424,6 +425,8 @@ awful.rules.rules = {
       properties = { floating = true } },
     { rule = { class = "google-chrome"},
       properties = { tag = tags[1][2] } },
+                     
+
     -- Set Firefox to always map on tags number 2 of screen 1.
    -- { rule = { class = "Firefox" },
     --   properties = { tag = tags[1][2] } },
