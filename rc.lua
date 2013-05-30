@@ -10,54 +10,41 @@ require("naughty")
 require("vicious")
 --Volume control
 
- cardid  = 0
- channel = "Master"
- function volume (mode, widget)
- 	if mode == "update" then
-              local fd = io.popen("amixer -c " .. cardid .. " -- sget " .. channel)
-              local status = fd:read("*all")
-              fd:close()
- 		
- 		local volume = string.match(status, "(%d?%d?%d)%%")
- 		volume = string.format("% 3d", volume)
+cardid  = 0
+channel = "Master"
+function volume (mode, widget)
+  if mode == "update" then
+             local fd = io.popen("amixer -c " .. cardid .. " -- sget " .. channel)
+             local status = fd:read("*all")
+             fd:close()
  
- 		status = string.match(status, "%[(o[^%]]*)%]")
+    local volume = string.match(status, "(%d?%d?%d)%%")
+    volume = string.format("% 3d", volume)
  
- 		if string.find(status, "on", 1, true) then
- 		    widget:bar_properties_set("vol", {["bg"]="#000000"})
-        else
-            widget:bar_properties_set("vol", {["bg"] = "#cc3333"})
- 		end
- 		widget.text = widget:bar_data_add("vol", volume)
- 	elseif mode == "up" then
- 		io.popen("amixer -q -c " .. cardid .. " sset " .. channel .. " 5%+"):read("*all")
- 		volume("update", widget)
- 	elseif mode == "down" then
- 		io.popen("amixer -q -c " .. cardid .. " sset " .. channel .. " 5%-"):read("*all")
- 		volume("update", widget)
- 	else
- 		io.popen("amixer -c " .. cardid .. " sset " .. channel .. " toggle"):read("*all")
- 		volume("update", widget)
- 	end
- end
+    status = string.match(status, "%[(o[^%]]*)%]")
+ 
+    if string.find(status, "on", 1, true) then
+         widget:bar_properties_set("vol", {["bg"]="#000000"})
+       else
+         widget:bar_properties_set("vol", {["bg"] = "#cc3333"})
+    end
+    widget.text = widget:bar_data_add("vol", volume)
+  elseif mode == "up" then
+    io.popen("amixer -q -c " .. cardid .. " sset " .. channel .. " 5%+"):read("*all")
+    volume("update", widget)
+  elseif mode == "down" then
+    io.popen("amixer -q -c " .. cardid .. " sset " .. channel .. " 5%-"):read("*all")
+    volume("update", widget)
+  else
+    io.popen("amixer -c " .. cardid .. " sset " .. channel .. " toggle"):read("*all")
+    volume("update", widget)
+  end
+end
 
- function shutdown ()
-    local fd = io.popen("/home/deimos/scripts/shutdown.sh")
- end
+function shutdown ()
+  local fd = io.popen("/home/deimos/scripts/shutdown.sh")
+end
 
--- Mcabber unread messages
--- function mcabber_unread_count (widget)
---     local fd = io.popen("/home/deimos/scripts/unread_messages.sh")
---     local count = fd:read("*all")
---     fd:close()
---     if string.find (count, "0") then
---         widget.bg = "#000000"
---     else
---         widget.bg = "red"
---     end
---     widget.text = count
--- end
- 
 -- {{{ Variable definitions
 -- Themes define colours, icons, and wallpapers
 beautiful.init("/usr/share/awesome/themes/default/theme.lua")
@@ -125,11 +112,10 @@ mylauncher = awful.widget.launcher({ image = image(beautiful.awesome_icon),
 
 -- {{{ Wibox
 -- Create a textclock widget
---mytextclock = awful.widget.textclock({ align = "right" })
 datewidget = widget({type= "textbox"})
 vicious.register(datewidget, vicious.widgets.date, "%b %d, %R")
 
---volume widget
+-- volume widget
 
  pb_volume =  widget({ type = "progressbar", name = "pb_volume", align = "right" })
  pb_volume.width = 12
@@ -153,26 +139,24 @@ vicious.register(datewidget, vicious.widgets.date, "%b %d, %R")
    ["reverse"] = false
  })
 pb_volume:buttons({
-	button({ }, 4, function () volume("up", pb_volume) end),
-	button({ }, 5, function () volume("down", pb_volume) end),
-	button({ }, 1, function () volume("mute", pb_volume) end)
+  button({ }, 4, function () volume("up", pb_volume) end),
+  button({ }, 5, function () volume("down", pb_volume) end),
+  button({ }, 1, function () volume("mute", pb_volume) end)
 })
 volume("update", pb_volume)
 
+-- Battery level widget
+batterywidget = widget({ type = "textbox" })
+batterywidget.border_width = 1
+batterywidget.border_color = beautiful.fg_normal
+vicious.register(batterywidget, vicious.widgets.bat, "$1$2%", 63, 'BAT0')
 
---Keyboard layout widget
+-- Keyboard layout widget
 kbdwidget = widget ({type = "textbox", name = "kbdwidget"})
 kbdwidget.border_width = 1
 kbdwidget.border_color = beautiful.fg_normal
 kbdwidget.text = " Eng "
 
--- Unread messages widget
--- meswidget = widget ({type = "textbox", name = "meswidget"})
--- meswidget.border_width = 1
--- meswidget.border_color = beautiful.fg_normal
--- meswidget.width = 20
--- meswidget.align = "center";
--- mcabber_unread_count(meswidget)
 
 --Shutdown widget
 shwidget = widget ({type = "textbox", name = "shwidget"})
@@ -254,10 +238,10 @@ for s = 1, screen.count() do
         },
         meswidget,
         mylayoutbox[s],
-        --mytextclock,
         pb_volume,
-	    datewidget,
-	    kbdwidget,
+        batterywidget,
+        datewidget,
+        kbdwidget,
         s == 1 and mysystray or nil,
         mytasklist[s],
         layout = awful.widget.layout.horizontal.rightleft
@@ -320,6 +304,17 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Control" }, "l",     function () awful.tag.incncol(-1)         end),
     awful.key({ modkey,           }, "space", function () awful.layout.inc(layouts,  1) end),
     awful.key({ modkey, "Shift"   }, "space", function () awful.layout.inc(layouts, -1) end),
+
+    awful.key({ modkey, "Control" }, "n", awful.client.restore),
+    -- all minimized clients are restored 
+    awful.key({ modkey, "Shift"   }, "n", 
+        function()
+            local tag = awful.tag.selected()
+                for i=1, #tag:clients() do
+                    tag:clients()[i].minimized=false
+                    tag:clients()[i]:redraw()
+            end
+        end),
 
     -- Prompt
     -- awful.key({ modkey },            "r",     function () mypromptbox[mouse.screen]:run() end),
@@ -470,14 +465,12 @@ awful.util.spawn_with_shell("dex -a")
 dbus.request_name("session", "ru.gentoo.kbdd")
 dbus.add_match("session", "interface='ru.gentoo.kbdd', member='layoutChanged'")
 dbus.add_signal ("ru.gentoo.kbdd", function (...)
-	local data = {...}
-	local layout = data [2]
-	lts = {[0] = "Eng", [1] = "Rus"}
-	kbdwidget.text = " "..lts[layout].." "
-	end
+  local data = {...}
+  local layout = data [2]
+  lts = {[0] = "Eng", [1] = "Rus"}
+  kbdwidget.text = " "..lts[layout].." "
+  end
 )
 
 --Volume hook
 awful.hooks.timer.register(10, function () volume("update", pb_volume) end)
--- Mcabber messages hook
--- awful.hooks.timer.register(3, function () mcabber_unread_count(meswidget)  end)
