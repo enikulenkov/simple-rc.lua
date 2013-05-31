@@ -41,9 +41,6 @@ require("vicious")
  	end
  end
 
- function shutdown ()
-    local fd = io.popen("/home/deimos/scripts/shutdown.sh")
- end
 
 -- Mcabber unread messages
 -- function mcabber_unread_count (widget)
@@ -63,10 +60,10 @@ require("vicious")
 beautiful.init("/usr/share/awesome/themes/default/theme.lua")
 
 -- This is used later as the default terminal and editor to run.
-terminal = "urxvt"
+terminal = "gnome-terminal"
 editor = os.getenv("EDITOR") or "vim"
 editor_cmd = terminal .. " -e " .. editor
-browser = "google-chrome"
+browser = "firefox"
 file_manager = "mc"
 fm_cmd = terminal .. " -e " .. file_manager
 
@@ -100,7 +97,7 @@ layouts =
 tags = {}
 for s = 1, screen.count() do
     -- Each screen has its own tag table.
-    tags[s] = awful.tag({ "term", "chrome", "okular", 4, 5, 6, 7, 8, 9 }, s, layouts[1])
+    tags[s] = awful.tag({ "term", "firefox", "okular", 4, 5, 6, 7, 8, 9 }, s, layouts[1])
 end
 -- }}}
 
@@ -115,7 +112,6 @@ myawesomemenu = {
 
 mymainmenu = awful.menu({ items = { { "awesome", myawesomemenu, beautiful.awesome_icon },
                                     { "open terminal", terminal },
-                                    { "Log out", '/home/deimos/scripts/shutdown.sh'}
                                   }
                         })
 
@@ -173,13 +169,6 @@ kbdwidget.text = " Eng "
 -- meswidget.width = 20
 -- meswidget.align = "center";
 -- mcabber_unread_count(meswidget)
-
---Shutdown widget
-shwidget = widget ({type = "textbox", name = "shwidget"})
-shwidget.text = " Sh "
-shwidget:buttons ({
-    button({ }, 1, function() shutdown() end)
-})
 
 -- Create a systray
 mysystray = widget({ type = "systray" })
@@ -322,7 +311,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Shift"   }, "space", function () awful.layout.inc(layouts, -1) end),
 
     -- Prompt
-    -- awful.key({ modkey },            "r",     function () mypromptbox[mouse.screen]:run() end),
+	awful.key({ "Mod1", },           "F2",     function () mypromptbox[mouse.screen]:run() end),
 
     awful.key({ modkey }, "x",
               function ()
@@ -338,9 +327,9 @@ globalkeys = awful.util.table.join(
             volume("down", pb_volume) end),
     awful.key({ }, "XF86AudioMute", function ()
             volume("mute", pb_volume) end),
-    --Shutdown
-    awful.key({ modkey, }, "q",    function()
-        shutdown() end)
+
+	--Lock screen
+	awful.key({ modkey, }, "l", function() awful.util.spawn("gnome-screensaver-command -l") end)
 )
 
 clientkeys = awful.util.table.join(
