@@ -10,6 +10,8 @@ local beautiful = require("beautiful")
 local naughty = require("naughty")
 local menubar = require("menubar")
 local hotkeys_popup = require("awful.hotkeys_popup").widget
+-- Lain package for Awesome (https://github.com/copycat-killer/lain/wiki)
+local lain = require("lain")
 
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
@@ -41,8 +43,8 @@ end
 beautiful.init(awful.util.get_themes_dir() .. "default/theme.lua")
 
 -- This is used later as the default terminal and editor to run.
-terminal = "xterm"
-editor = os.getenv("EDITOR") or "nano"
+terminal = "urxvt"
+editor = os.getenv("EDITOR") or "vim"
 editor_cmd = terminal .. " -e " .. editor
 
 -- Default modkey.
@@ -112,6 +114,11 @@ menubar.utils.terminal = terminal -- Set the terminal for applications that requ
 
 -- Keyboard map indicator and switcher
 mykeyboardlayout = awful.widget.keyboardlayout()
+
+-- {{{ Custom widgets
+-- PulseAudio volume control
+volume = lain.widgets.pulsebar()
+-- }}}
 
 -- {{{ Wibar
 -- Create a textclock widget
@@ -215,6 +222,7 @@ awful.screen.connect_for_each_screen(function(s)
             layout = wibox.layout.fixed.horizontal,
             mykeyboardlayout,
             wibox.widget.systray(),
+            volume.bar,
             mytextclock,
             s.mylayoutbox,
         },
@@ -313,7 +321,7 @@ globalkeys = awful.util.table.join(
               {description = "restore minimized", group = "client"}),
 
     -- Prompt
-    awful.key({ modkey },            "r",     function () awful.screen.focused().mypromptbox:run() end,
+    awful.key({ "Mod1" },            "F2",     function () awful.screen.focused().mypromptbox:run() end,
               {description = "run prompt", group = "launcher"}),
 
     awful.key({ modkey }, "x",
@@ -328,7 +336,19 @@ globalkeys = awful.util.table.join(
               {description = "lua execute prompt", group = "awesome"}),
     -- Menubar
     awful.key({ modkey }, "p", function() menubar.show() end,
-              {description = "show the menubar", group = "launcher"})
+              {description = "show the menubar", group = "launcher"}),
+
+    -- PulseAudio volume control
+    awful.key({ modkey }, "Up",
+        function ()
+            os.execute(string.format("pactl set-sink-volume %d +5%%", volume.sink))
+            volume.update()
+        end),
+    awful.key({ modkey }, "Down",
+        function ()
+            os.execute(string.format("pactl set-sink-volume %d -5%%", volume.sink))
+            volume.update()
+        end)
 )
 
 clientkeys = awful.util.table.join(
