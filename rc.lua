@@ -123,6 +123,12 @@ volume = lain.widgets.pulsebar()
 -- {{{ Wibar
 -- Create a textclock widget
 mytextclock = wibox.widget.textclock()
+-- Calendar
+lain.widgets.calendar({
+      attach_to = { mytextclock },
+      followtag = true,
+      cal = "/usr/bin/cal --color=always"
+})
 
 -- Create a wibox for each screen and add it
 local taglist_buttons = awful.util.table.join(
