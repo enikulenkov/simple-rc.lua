@@ -12,6 +12,8 @@ local menubar = require("menubar")
 local hotkeys_popup = require("awful.hotkeys_popup").widget
 -- Lain package for Awesome (https://github.com/copycat-killer/lain/wiki)
 local lain = require("lain")
+-- Pomodoro timer (https://github.com/nikolavp/awesome-pomodoro)
+local pomodoro = require("./pomodoro/init")
 
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
@@ -41,6 +43,8 @@ end
 -- {{{ Variable definitions
 -- Themes define colours, icons, font and wallpapers.
 beautiful.init(awful.util.get_themes_dir() .. "default/theme.lua")
+
+pomodoro.init()
 
 -- This is used later as the default terminal and editor to run.
 terminal = "urxvt"
@@ -117,14 +121,14 @@ mykeyboardlayout = awful.widget.keyboardlayout()
 
 -- {{{ Custom widgets
 -- PulseAudio volume control
-volume = lain.widgets.pulsebar()
+volume = lain.widget.pulsebar()
 -- }}}
 
 -- {{{ Wibar
 -- Create a textclock widget
 mytextclock = wibox.widget.textclock()
 -- Calendar
-lain.widgets.calendar({
+lain.widget.calendar({
       attach_to = { mytextclock },
       followtag = true,
       cal = "/usr/bin/cal --color=always"
@@ -231,6 +235,7 @@ awful.screen.connect_for_each_screen(function(s)
             volume.bar,
             mytextclock,
             s.mylayoutbox,
+            pomodoro.widget, pomodoro.icon_widget,
         },
     }
 end)
